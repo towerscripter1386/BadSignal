@@ -213,7 +213,7 @@ Just another signal module with some additions from me
           <th>No</th>
           <th>
             Mostly used for internals, shouldn't be set directly<br>
-            so instead call the function by Event:Fire()
+            so instead call the function by Event:PrepareGC()
           </th>
         </tr>
       </table>
