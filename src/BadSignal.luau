@@ -10,7 +10,7 @@ local function Event_new(self:Event,alloc:number?) : Event
 end
 
 --Pushes the func onto the event stack, if the provided argument is a thread then it will run it once
-local function Event_Push(self:Event,yieldCall:boolean,func:(...any) -> ()|thread) : ()
+local function Event_Push(self:Event,yieldCall:boolean,func:((...any) -> ())|thread) : ()
 	local queue = self._queue
 	local pos = #queue+1
 	queue[pos] = func
@@ -20,7 +20,7 @@ local function Event_Push(self:Event,yieldCall:boolean,func:(...any) -> ()|threa
 end
 
 --Pops the func from the stack
-local function Event_Pop(self:Event,func:(...any) -> ()|thread) : ()
+local function Event_Pop(self:Event,func:((...any) -> ())|thread) : ()
 	local queue = self._queue
 	local threadPos = table.find(queue,func)
 	if threadPos then
@@ -50,7 +50,7 @@ local function Event_Fire(self:Event,...) : ()
 			if yieldHash[v] then
 				coroutine.resume(coroutine.create(v),...)
 			else
-				xpcall(v,warn::(...any) -> ())
+				xpcall(v,warn::(...any) -> (),...)
 			end
 		else
 			coroutine.resume(v::thread,...)
