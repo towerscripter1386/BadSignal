@@ -27,9 +27,7 @@ end
 
 --Pushes the func onto the event stack, if the provided argument is a thread then it will run it once
 local function Event_Push(self:Event,yieldCall:boolean,func:((...any) -> ())|thread) : ()
-	local queue = self._queue
-	local pos = #queue+1
-	queue[pos] = func
+	table.insert(self._queue,func)
 	if yieldCall and type(func) == "function" then
 		self._yieldHash[func] = true
 	end
