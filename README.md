@@ -1,4 +1,4 @@
-<img src="docs/logo.png" alt="Bad Signal" width="500" height="600">
+<img src="docs/Logo.png" alt="Bad Signal" width="500" height="600">
 
 # BadSignal
 
