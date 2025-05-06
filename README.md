@@ -1,3 +1,5 @@
+<img src="docs/logo.png" alt="Bad Signal" width="500" height="600">
+
 # BadSignal
 
 ## Just Another Signal Module with Custom Additions
