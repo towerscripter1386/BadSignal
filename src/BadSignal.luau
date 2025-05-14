@@ -17,6 +17,38 @@
 --!optimize 2
 --!strict
 
+--Variables
+local thread_pool = setmetatable({},{__mode = "kv"})::setmetatable<{thread},{__mode:"kv"}> -- yes, a metatable
+
+--Functions
+
+--Wrapper function inspired by GoodSignal
+local function optimizedTupleCall(func:(...any) -> (),...)
+	func(...)
+	table.insert(thread_pool,coroutine.running())
+end
+
+--The main entry point for event
+local function runInCoroutine()
+	while true do
+		optimizedTupleCall(coroutine.yield())
+	end
+end
+
+--Returns a new thread
+local function getThread() : thread
+	local threadS = #thread_pool
+	local c:thread
+	if threadS == 0 then
+		c = coroutine.create(runInCoroutine)
+		coroutine.resume(c)
+	else
+		c = thread_pool[threadS]
+		thread_pool[threadS] = nil
+	end
+	return c
+end
+
 --Creates a new event
 local function Event_new(self:Event,alloc:number?) : Event
 	local newSelf = table.clone(self)
@@ -25,7 +57,7 @@ local function Event_new(self:Event,alloc:number?) : Event
 	return newSelf
 end
 
---Pushes the func onto the event stack, if the provided argument is a thread then it will run it once
+--Pushes the func onto the event stack, if the second argument is a thread then it will run it once.
 local function Event_Push(self:Event,yieldCall:boolean,func:((...any) -> ())|thread) : ()
 	table.insert(self._queue,func)
 	if yieldCall and type(func) == "function" then
@@ -62,7 +94,7 @@ local function Event_Fire(self:Event,...) : ()
 		local v = queue[i]
 		if type(v) == "function" then
 			if yieldHash[v] then
-				coroutine.resume(coroutine.create(v),...)
+				coroutine.resume(getThread(),v,...)
 			else
 				xpcall(v,warn::(...any) -> (),...)
 			end
@@ -93,7 +125,7 @@ export type Event = {
 	Pop:typeof(Event_Pop);
 	Fire:typeof(Event_Fire);
 	PrepareGC:typeof(Event_PrepareGC);
-	
+
 	_queue:{((...any) -> ())|thread};
 	_yieldHash:{[(...any) -> ()]:boolean};
 }
@@ -106,9 +138,10 @@ local Event:Event = {
 	Pop = Event_Pop;
 	Fire = Event_Fire;
 	PrepareGC = Event_PrepareGC;
-	
+
 	_queue = {};
 	_yieldHash = {};
 }
 
 return Event
+
